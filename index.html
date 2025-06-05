@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5c2c7;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 25% 25%, #e8b4cb 0%, transparent 30%),
+                radial-gradient(circle at 75% 75%, #ddb3d8 0%, transparent 25%),
+                radial-gradient(circle at 60% 20%, #f8d7da 0%, transparent 35%),
+                radial-gradient(circle at 20% 80%, #c5b3f0 0%, transparent 20%);
+            opacity: 0.4;
+            animation: floatShapes 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 80% 30%, rgba(221, 179, 216, 0.3) 0%, transparent 40%),
+                radial-gradient(ellipse at 20% 70%, rgba(232, 180, 203, 0.25) 0%, transparent 45%);
+            pointer-events: none;
+        }
+
+        @keyframes floatShapes {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-20px, -30px) rotate(1deg); }
+            66% { transform: translate(30px, -20px) rotate(-1deg); }
+        }
+
+        .timer-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(25px);
+            border-radius: 32px;
+            padding: 50px 40px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.08),
+                0 8px 32px rgba(255, 255, 255, 0.3) inset;
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: #6b4e82;
+            font-size: 2.4em;
+            font-weight: 300;
+            margin-bottom: 35px;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 8px rgba(107, 78, 130, 0.1);
+        }
+
+        .time-display {
+            font-size: 4.2em;
+            font-weight: 200;
+            color: #8b6b9e;
+            margin: 35px 0;
+            font-family: 'SF Mono', Monaco, monospace;
+            letter-spacing: 0.05em;
+            text-shadow: 0 4px 12px rgba(139, 107, 158, 0.15);
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .input-group label {
+            font-size: 0.9em;
+            color: #9a7fb0;
+            margin-bottom: 8px;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+        }
+
+        .input-group input {
+            width: 65px;
+            padding: 14px 10px;
+            border: 2px solid rgba(154, 127, 176, 0.2);
+            border-radius: 16px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: 400;
+            background: rgba(255, 255, 255, 0.6);
+            color: #8b6b9e;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: rgba(154, 127, 176, 0.5);
+            box-shadow: 0 0 0 4px rgba(154, 127, 176, 0.1);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .start-btn {
+            background: #c5b3f0;
+            color: #6b4e82;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(197, 179, 240, 0.3);
+        }
+
+        .start-btn:hover {
+            background: #b8a5e8;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(197, 179, 240, 0.4);
+        }
+
+        .pause-btn {
+            background: #f8d7da;
+            color: #8b6b9e;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(248, 215, 218, 0.3);
+        }
+
+        .pause-btn:hover {
+            background: #f5c2c7;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(248, 215, 218, 0.4);
+        }
+
+        .reset-btn {
+            background: #e8b4cb;
+            color: #6b4e82;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(232, 180, 203, 0.3);
+        }
+
+        .reset-btn:hover {
+            background: #dda8c4;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(232, 180, 203, 0.4);
+        }
+
+        .progress-ring {
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .progress-ring svg {
+            transform: rotate(-90deg);
+            width: 200px;
+            height: 200px;
+        }
+
+        .progress-ring-circle {
+            fill: transparent;
+            stroke: rgba(154, 127, 176, 0.15);
+            stroke-width: 6;
+        }
+
+        .progress-ring-progress {
+            fill: transparent;
+            stroke: #9a7fb0;
+            stroke-width: 6;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .status.show {
+            opacity: 1;
+        }
+
+        .status.running {
+            background: rgba(197, 179, 240, 0.15);
+            color: #8b6b9e;
+        }
+
+        .status.paused {
+            background: rgba(248, 215, 218, 0.15);
+            color: #9a7fb0;
+        }
+
+        .status.completed {
+            background: rgba(232, 180, 203, 0.15);
+            color: #8b6b9e;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .timer-container.completed {
+            animation: pulse 0.5s ease-in-out 3;
+        }
+    </style>
+</head>
+<body>
+    <div class="timer-container" id="timerContainer">
+        <h1>Study Timer</h1>
+        
+        <div class="time-inputs">
+            <div class="input-group">
+                <label>Minutes</label>
+                <input type="number" id="minutesInput" min="0" max="59" value="25">
+            </div>
+            <div class="input-group">
+                <label>Seconds</label>
+                <input type="number" id="secondsInput" min="0" max="59" value="0">
+            </div>
+        </div>
+
+        <div class="progress-ring">
+            <svg>
+                <circle class="progress-ring-circle" cx="100" cy="100" r="90"></circle>
+                <circle class="progress-ring-progress" cx="100" cy="100" r="90" id="progressCircle"></circle>
+            </svg>
+        </div>
+
+        <div class="time-display" id="timeDisplay">25:00</div>
+
+        <div class="controls">
+            <button class="start-btn" id="startBtn">Start</button>
+            <button class="pause-btn" id="pauseBtn" style="display: none;">Pause</button>
+            <button class="reset-btn" id="resetBtn">Reset</button>
+        </div>
+
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        class StudyTimer {
+            constructor() {
+                this.totalSeconds = 0;
+                this.remainingSeconds = 0;
+                this.isRunning = false;
+                this.intervalId = null;
+                this.audioContext = null;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.setupProgressRing();
+                this.updateDisplay();
+            }
+
+            initializeElements() {
+                this.minutesInput = document.getElementById('minutesInput');
+                this.secondsInput = document.getElementById('secondsInput');
+                this.timeDisplay = document.getElementById('timeDisplay');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.status = document.getElementById('status');
+                this.timerContainer = document.getElementById('timerContainer');
+                this.progressCircle = document.getElementById('progressCircle');
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.start());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                
+                this.minutesInput.addEventListener('input', () => this.updateFromInputs());
+                this.secondsInput.addEventListener('input', () => this.updateFromInputs());
+            }
+
+            setupProgressRing() {
+                const circle = this.progressCircle;
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                
+                circle.style.strokeDasharray = circumference;
+                circle.style.strokeDashoffset = circumference;
+            }
+
+            updateFromInputs() {
+                if (!this.isRunning) {
+                    const minutes = parseInt(this.minutesInput.value) || 0;
+                    const seconds = parseInt(this.secondsInput.value) || 0;
+                    this.totalSeconds = minutes * 60 + seconds;
+                    this.remainingSeconds = this.totalSeconds;
+                    this.updateDisplay();
+                    this.updateProgressRing();
+                }
+            }
+
+            updateDisplay() {
+                const minutes = Math.floor(this.remainingSeconds / 60);
+                const seconds = this.remainingSeconds % 60;
+                this.timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+
+            updateProgressRing() {
+                const circle = this.progressCircle;
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                
+                if (this.totalSeconds > 0) {
+                    const progress = (this.totalSeconds - this.remainingSeconds) / this.totalSeconds;
+                    const offset = circumference - (progress * circumference);
+                    circle.style.strokeDashoffset = offset;
+                }
+            }
+
+            start() {
+                if (this.remainingSeconds <= 0) {
+                    this.updateFromInputs();
+                }
+                
+                if (this.remainingSeconds > 0) {
+                    this.isRunning = true;
+                    this.startBtn.style.display = 'none';
+                    this.pauseBtn.style.display = 'inline-block';
+                    this.showStatus('Timer running...', 'running');
+                    
+                    this.intervalId = setInterval(() => {
+                        this.remainingSeconds--;
+                        this.updateDisplay();
+                        this.updateProgressRing();
+                        
+                        if (this.remainingSeconds <= 0) {
+                            this.complete();
+                        }
+                    }, 1000);
+                }
+            }
+
+            pause() {
+                this.isRunning = false;
+                clearInterval(this.intervalId);
+                this.startBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                this.showStatus('Timer paused', 'paused');
+            }
+
+            reset() {
+                this.isRunning = false;
+                clearInterval(this.intervalId);
+                this.updateFromInputs();
+                this.startBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                this.hideStatus();
+                this.timerContainer.classList.remove('completed');
+            }
+
+            complete() {
+                this.isRunning = false;
+                clearInterval(this.intervalId);
+                this.startBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                this.showStatus('Time\'s up! Great job studying!', 'completed');
+                this.timerContainer.classList.add('completed');
+                this.playNotificationSound();
+            }
+
+            showStatus(message, type) {
+                this.status.textContent = message;
+                this.status.className = `status show ${type}`;
+            }
+
+            hideStatus() {
+                this.status.classList.remove('show');
+            }
+
+            playNotificationSound() {
+                // Create a gentle, calming notification sound using Web Audio API
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                const ctx = this.audioContext;
+                const oscillator = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
+
+                // Create a gentle bell-like sound
+                oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.3);
+                oscillator.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.6);
+
+                gainNode.gain.setValueAtTime(0, ctx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
+
+                oscillator.type = 'sine';
+                oscillator.start(ctx.currentTime);
+                oscillator.stop(ctx.currentTime + 1);
+
+                // Add a second harmonic for richness
+                setTimeout(() => {
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    
+                    osc2.frequency.setValueAtTime(1200, ctx.currentTime);
+                    osc2.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.4);
+                    
+                    gain2.gain.setValueAtTime(0, ctx.currentTime);
+                    gain2.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.1);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+                    
+                    osc2.type = 'sine';
+                    osc2.start(ctx.currentTime);
+                    osc2.stop(ctx.currentTime + 0.8);
+                }, 100);
+            }
+        }
+
+        // Initialize the timer when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new StudyTimer();
+        });
+    </script>
+</body>
+</html>
